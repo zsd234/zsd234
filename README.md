@@ -1,112 +1,122 @@
-# PPT 模板自动识别系统 (Multi-Agent Skill)
+# PPT Template Deck Builder
 
-## 概述
+一个用于 **深度识别 PPT 模板并自动生成高质量演示文稿** 的 Codex Skill。
 
-这是一个基于多智能体架构的PowerPoint模板自动识别系统。系统能够分析PPT文件的结构、设计元素、内容特征，自动识别模板类型并提供优化建议。
+它不是简单替换文字，而是先理解模板：每一页是什么类型、能放几个观点、文本框和图片框分别代表什么、字体字号和版式规则是什么；再理解用户文档的逻辑，自动把内容匹配到合适的模板页中，并进行动画、字号、文件兼容和无障碍检查。
 
-## 系统架构
+## 核心能力
 
-### 多智能体组成
+- **模板深度识别**：解析 `.pptx` 的页面、母版、版式、文本框、图片框、图表、字体、字号、颜色、坐标和层级。
+- **内页类型判断**：识别封面、目录、章节页、2 点页、3 点页、4 点页、指标页、图文页、流程页、时间线页等。
+- **内容容量判断**：判断某页适合放 2 个点、3 个点、4 个点，还是应该拆页或生成模板变体。
+- **文档逻辑提炼**：从 `.docx`、`.md`、`.txt`、`.json` 中提炼章节、观点、含义、证据和逻辑关系。
+- **模板匹配规划**：生成 `final_slide_plan.json`，记录每段内容应该进入哪一页、哪个元素、用什么变换方式。
+- **动画规划**：生成保守、适合课堂/汇报的动画计划，避免乱加飞入、旋转、弹跳等干扰效果。
+- **字号与放映检查**：检查课堂展示和普通汇报的最低字号、标题长度、正文行数、bullet 数量。
+- **交付兼容性检查**：检查 PPTX 文件大小、媒体大小、图片像素、外链、嵌入字体、非通用字体。
+- **无障碍结构检查**：检查 slide title、alt text、reading order 风险和文件名式无效 alt text。
 
-1. **文件分析智能体 (File Analyzer Agent)**
-   - 解析PPT文件结构
-   - 提取元数据和基本信息
+## 一键安装
 
-2. **设计识别智能体 (Design Recognition Agent)**
-   - 分析视觉设计元素
-   - 识别色彩方案、字体、布局类型
+下载或克隆本仓库后，在 PowerShell 中运行：
 
-3. **内容分析智能体 (Content Analysis Agent)**
-   - 分析幻灯片内容
-   - 识别内容模式和结构
-
-4. **模板分类智能体 (Template Classification Agent)**
-   - 综合前三个智能体的结果
-   - 识别模板类型
-   - 输出分类结果
-
-5. **优化建议智能体 (Optimization Agent)**
-   - 基于识别结果提供优化建议
-   - 生成详细报告
-
-## 功能特性
-
-- ✅ 自动识别PPT模板类型
-- ✅ 分析设计元素和色彩方案
-- ✅ 识别内容结构模式
-- ✅ 提供优化建议
-- ✅ 生成详细分析报告
-- ✅ 支持批量处理
-
-## 安装依赖
-
-```bash
-pip install python-pptx pillow numpy scikit-learn requests
+```powershell
+.\scripts\install.ps1
 ```
 
-## 使用方法
+安装后，在 Codex 里这样调用：
 
-```python
-from ppt_template_analyzer import PPTTemplateAnalyzerSystem
-
-# 初始化系统
-analyzer = PPTTemplateAnalyzerSystem()
-
-# 分析PPT文件
-result = analyzer.analyze_ppt("path/to/presentation.pptx")
-
-# 获取识别结果
-print(f"模板类型: {result['template_type']}")
-print(f"置信度: {result['confidence']:.2%}")
-print(f"设计特征: {result['design_features']}")
-print(f"优化建议: {result['recommendations']}")
+```text
+使用 $ppt-template-deck-builder，分析这个 PPT 模板，并根据我提供的文档生成一份课堂展示用 PPT。
 ```
 
-## 项目结构
+## 快速校验
 
+```powershell
+.\scripts\validate.ps1
 ```
+
+校验内容包括：
+
+- Skill 必需文件是否存在
+- `SKILL.md` 元数据是否有效
+- Python 脚本是否能通过语法检查
+
+GitHub Actions 也会自动执行基础校验：
+
+```text
+.github/workflows/validate.yml
+```
+
+## 直接跑一次模板分析
+
+```powershell
+.\scripts\run_existing_template.ps1 `
+  -TemplatePptx "C:\path\to\template.pptx" `
+  -SourceDocument "C:\path\to\source.docx"
+```
+
+输出会放到 `outputs/`，包括：
+
+- `template_model.json`
+- `template_semantics.json`
+- `content_outline.json`
+- `final_slide_plan.json`
+- `animation_plan.json`
+- `qa_report.json`
+
+这些是后续生成高质量 PPT 的结构化中间结果。
+
+## 仓库结构
+
+```text
 .
 ├── README.md
+├── GITHUB_UPLOAD_GUIDE.md
 ├── requirements.txt
-├── ppt_template_analyzer.py          # 主系统文件
-├── agents/
-│   ├── __init__.py
-│   ├── file_analyzer.py              # 文件分析智能体
-│   ├── design_recognition.py         # 设计识别智能体
-│   ├── content_analysis.py           # 内容分析智能体
-│   ├── template_classifier.py        # 模板分类智能体
-│   └── optimization.py               # 优化建议智能体
-├── models/
-│   ├── __init__.py
-│   ├── templates.py                  # 模板定义
-│   └── features.py                   # 特征定义
-├── utils/
-│   ├── __init__.py
-│   ├── color_analyzer.py             # 色彩分析工具
-│   ├── layout_analyzer.py            # 布局分析工具
-│   └── logger.py                     # 日志工具
-└── tests/
-    ├── __init__.py
-    ├── test_analyzer.py
-    └── sample_presentations/
+├── scripts/
+│   ├── install.ps1
+│   ├── validate.ps1
+│   └── run_existing_template.ps1
+├── examples/
+│   ├── source.example.md
+│   └── content.example.json
+└── skills/
+    └── ppt-template-deck-builder/
+        ├── SKILL.md
+        ├── agents/
+        ├── references/
+        └── scripts/
 ```
 
-## 模板识别类型
+真正的 Codex Skill 在：
 
-系统可以识别以下PPT模板类型：
+```text
+skills/ppt-template-deck-builder/
+```
 
-- **业务演示 (Business Presentation)**
-- **教育培训 (Educational Training)**
-- **学术报告 (Academic Presentation)**
-- **销售推介 (Sales Pitch)**
-- **产品发布 (Product Launch)**
-- **财务报表 (Financial Report)**
-- **技术文档 (Technical Documentation)**
-- **创意展示 (Creative Showcase)**
+## 适合的使用场景
 
-## 许可证
+- 想用公司/学校/课程 PPT 模板自动生成新 PPT。
+- 模板没有规范占位符，但每页有不同卡片、图文、流程、指标结构。
+- 想把长文档、课程内容、报告、讲稿整理成 PPT。
+- 希望避免字体太小、内容太密、动画太乱、换电脑后变形。
+- 希望在最终交付前检查文件大小、图片清晰度、字体兼容和无障碍结构。
 
-MIT
+## 依赖
+
+```bash
+pip install -r requirements.txt
+```
+
+主要依赖：
+
+- `lxml`
+- `Pillow`
+
+## 说明
+
+这个仓库提供的是 Codex Skill 和配套分析/QA 脚本。最终 PPTX 的高质量生成建议在 Codex 中调用此 skill，并结合可用的 PowerPoint/Presentations 生成能力完成。
 
 ## 作者
 
