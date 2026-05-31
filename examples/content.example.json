@@ -1,0 +1,48 @@
+{
+  "title": "Customer Onboarding Improvement",
+  "audience": "Course or leadership audience",
+  "delivery_mode": "classroom",
+  "slides": [
+    {
+      "id": "slide-001",
+      "title": "Onboarding delays come from repeated manual checks.",
+      "points": [
+        {
+          "title": "Setup is slow",
+          "summary": "New users spend too much time completing setup."
+        },
+        {
+          "title": "Progress is unclear",
+          "summary": "Administrators cannot easily see where users are blocked."
+        }
+      ],
+      "bullets": [
+        "Setup is slow",
+        "Progress is unclear"
+      ]
+    },
+    {
+      "id": "slide-002",
+      "title": "A guided setup flow turns scattered tasks into a visible path.",
+      "points": [
+        {
+          "title": "Verify automatically",
+          "summary": "The system checks setup requirements."
+        },
+        {
+          "title": "Guide users",
+          "summary": "Users see the next required action."
+        },
+        {
+          "title": "Show progress",
+          "summary": "Administrators can track blockers."
+        }
+      ],
+      "bullets": [
+        "Verify automatically",
+        "Guide users",
+        "Show progress"
+      ]
+    }
+  ]
+}
