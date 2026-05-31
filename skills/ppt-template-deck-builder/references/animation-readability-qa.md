@@ -114,21 +114,21 @@ Run this loop until there are no blocker or major findings:
      new semantic order.
    - Minimal mode has no newly generated object-level animation.
 
-8. Accessibility check.
+7. Accessibility check.
    - Every slide has a title, visible or intentionally hidden for accessibility.
    - Visuals and charts have alt text or are marked decorative.
    - Reading order follows the visual and speaking order.
    - Decorative objects are excluded from reading order.
    - Color is not the only signal for categories, status, or chart series.
 
-9. Rehearsal and handout check.
+8. Rehearsal and handout check.
    - Speaker notes contain concise delivery support, not pasted source text.
    - Any required handout/PDF version is generated after animation decisions.
    - Expected timing and click count are reasonable for the session.
    - Videos, fonts, and links are tested on the presentation machine when
      possible.
 
-7. Self-question pass.
+9. Self-question pass.
    - What is the one sentence this slide proves?
    - Is any text smaller than the audience can read?
    - Did the selected template page actually have enough slots?
