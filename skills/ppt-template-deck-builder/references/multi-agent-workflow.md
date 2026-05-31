@@ -1,0 +1,195 @@
+# Multi-Agent Workflow
+
+Use subagents only when the user explicitly asks for multi-agent, delegated, or
+parallel work and the environment provides subagent tools. Otherwise, perform
+these roles sequentially in the main agent.
+
+## Roles
+
+### Document Parsing Agent
+
+Input: source document, pasted text, or extracted raw text.
+
+Output:
+
+- `DocumentUnit[]` with paragraph/order/source location, heading path, unit
+  type, original text, table/image references, metrics, and source notes.
+- Preserve enough source traceability that each generated slide can point back
+  to its source units.
+
+### Logic Extraction Agent
+
+Input: `DocumentUnit[]`.
+
+Output:
+
+- Primary document structure such as `problem_solution`, `chronological`,
+  `argument_evidence`, `framework`, `process`, `comparison`,
+  `research_report`, `business_plan`, `case_study`, or `data_insight`.
+- Content points with meaning, role in story, evidence, source unit ids, and
+  relation to neighboring points.
+- A narrative plan that is suitable for presentation, not merely document order.
+
+### Layout Capacity Agent
+
+Input: `template_model.json`, `template_semantics.json`, and rendered
+screenshots when available.
+
+Output:
+
+- Slide-level `layout_profile` with actual slide purpose, layout family,
+  point capacity, bullet capacity, image/metric/process capacity, fit risk, and
+  evidence.
+- Identify 2-point, 3-point, 4-point, list-heavy, image-text, metric-card,
+  process, timeline, table, and chart pages even when the PPTX uses a blank
+  embedded layout.
+
+### Template Structure Agent
+
+Input: template PPTX, output requirements, and `template_model.json` when
+available.
+
+Output:
+
+- Slide inventory with slide ids, layout ids, master/layout relationships, and
+  slide type candidates.
+- Element inventory with element ids, shape names, type, bbox, z-order,
+  rotation, crop, text, media relationship, and placeholder metadata.
+- Explicit labels for text boxes, image frames, chart/table frames,
+  decorative elements, headers, footers, page numbers, logos, and background
+  objects.
+
+### Semantic Recognition Agent
+
+Input: template structure, extracted text, and rendered screenshots when
+available.
+
+Output:
+
+- `SemanticSlot[]` with role, confidence, and evidence for each editable or
+  visible element.
+- Roles should include `title`, `subtitle`, `section_label`, `body`,
+  `bullets`, `quote`, `metric_value`, `metric_label`, `image_hero`,
+  `image_content`, `icon_slot`, `caption`, `footer`, `logo`, `decoration`, and
+  `unknown`.
+- Evidence must mention position, size, font, repeated pattern, original text,
+  neighboring objects, or placeholder metadata.
+
+### Visual Specification Agent
+
+Input: template model, semantic slots, screenshots, and PPT XML style data.
+
+Output:
+
+- `VisualSpec[]` with resolved font family, size, color, weight, alignment,
+  line spacing, paragraph spacing, bullets, insets, image aspect ratio, crop
+  language, grid, and hierarchy.
+- Distinguish direct style, inherited/master style, and inferred style.
+- Mark which choices must be preserved and which may shrink for fit.
+
+### Content Mapping Agent
+
+Input: user content JSON or `content_outline.json`, `SemanticSlot[]`, and slide
+`layout_profile` capacity.
+
+Output:
+
+- `ContentMapping[]` assigning user text, metrics, images, and charts to
+  semantic slots.
+- Mark each transform as `keep`, `summarize`, `split`, `titleize`,
+  `bulletize`, `visualize`, or `omit`.
+- Flag content that exceeds slot capacity or needs a different layout.
+- Prefer exact point-capacity matches: 2 points to 2-point layouts, 3 points to
+  3-point layouts, and 4 points to 4-point layouts.
+
+### Layout Variant Agent
+
+Input: unmatched content need, closest source slide, template model, visual
+specs, and layout profile.
+
+Output:
+
+- A variant plan that derives new or removed repeated groups from an existing
+  source slide.
+- Preserve slide size, master/layout relationship, title/footer/logo zones,
+  theme colors, font hierarchy, grid, spacing, and decoration style.
+- Record `variant_type`, base slide, preserved design rules, generated elements,
+  and reason in `decision_records.json`.
+
+### Copy Adaptation Agent
+
+Input: raw user content, mappings, slot capacity estimates, and tone
+requirements.
+
+Output:
+
+- Final slide claims, subtitles, bullets, captions, metric labels, and notes.
+- Concise copy that keeps facts intact and avoids stuffing paragraphs into
+  title, metric, footer, caption, or image slots.
+- Omission or compression reasons when material is reduced.
+
+### Media Adaptation Agent
+
+Input: user media, image slot semantics, frame dimensions, crop hints, and
+source constraints.
+
+Output:
+
+- Media placement plan with asset path, slot id, crop/focus instructions, and
+  replacement risk.
+- Warnings for low resolution, wrong aspect ratio, distorted crops, missing
+  assets, or semantic mismatch.
+
+### Generation Agent
+
+Input: template PPTX, final slide plan, visual specs, and media plan.
+
+Output:
+
+- Editable PPTX draft generated by duplicating/importing template slides and
+  editing copied elements in place.
+- Preserve masters, theme, z-order, animation/transition data where possible,
+  and original placeholder geometry.
+
+### QA Agent
+
+Input: generated PPTX, rendered slide images, final plan, and template model.
+
+Output:
+
+- `ReviewFinding[]` with severity, affected slide/element ids, issue, and
+  proposed fix.
+- Check text overflow, clipping, missing content, font/style drift, image
+  distortion, semantic mismatch, duplicated or empty slides, visual imbalance,
+  unreadable projected font sizes, animation overuse, and template-fidelity
+  regressions.
+
+### Animation QA Agent
+
+Input: `final_slide_plan.json`, `animation_plan.json`, rendered slides, and
+delivery mode.
+
+Output:
+
+- Verify that animations follow title -> visual/metric -> point explanation
+  order.
+- Flag decorative/logo/footer/page-number animations, disallowed effects,
+  too many animated elements, and reveals that slow or confuse classroom
+  delivery.
+
+## Integration Rules
+
+- The main agent owns final story, style, integration, and delivery.
+- Use `slide_id + element_id` as the only stable element reference. Subagents
+  must not invent elements that were not extracted from the template.
+- Resolve conflicts with a `DecisionRecord` containing the element id,
+  competing interpretations, selected interpretation, reason, and whether user
+  confirmation is required.
+- Accept semantic confidence `>= 0.8` by default. Review `0.5-0.79` manually.
+  Treat `< 0.5` as unknown/preserve unless the rendered slide makes the role
+  obvious.
+- If QA finds a blocker or major issue, return to mapping, copy adaptation, or
+  generation. Do not deliver a deck with known blocker or major findings.
+- Repeat QA and repair until blocker and major findings are gone. If the same
+  issue remains after three repair rounds, split content, choose a simpler
+  layout, disable risky animation, or report the template limitation.
