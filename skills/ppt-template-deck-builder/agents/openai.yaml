@@ -1,0 +1,7 @@
+interface:
+  display_name: "PPT Template Deck Builder"
+  short_description: "Analyze PPT templates and build polished decks."
+  default_prompt: "Use $ppt-template-deck-builder to analyze this PPTX template and create a polished presentation from my content."
+
+policy:
+  allow_implicit_invocation: true
